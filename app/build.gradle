@@ -1,0 +1,151 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
+android {
+    namespace "com.example.frames"
+    compileSdkVersion 34
+    ndkVersion "21.3.6528147"
+
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+   sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs', 'src/main/jniLibs', '../unityLibrary/src/main/jniLibs']
+            java.srcDirs += ['../unityLibrary/src/main/java', '../.pub-cache/hosted/pub.dev/flutter_unity_widget-2022.2.1/android/src/main/kotlin']
+            assets.srcDirs += ['../unityLibrary/src/main/assets']
+            res.srcDirs += ['../unityLibrary/src/main/res']
+            kotlin.srcDirs += ['src/main/kotlin', '../.pub-cache/hosted/pub.dev/flutter_unity_widget-2022.2.1/android/src/main/kotlin']
+        }
+    }
+    defaultConfig {
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+        }
+        applicationId "com.example.frames"
+        minSdkVersion 23
+        targetSdkVersion 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+        manifestPlaceholders = [unityStreamingAssets: "unity3d/src/main/assets"]
+        multiDexEnabled true
+
+        packagingOptions {
+        //exclude '**/com/unity3d/player/**'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+
+
+        doNotStrip '*/armeabi-v7a/*.so'
+        doNotStrip '*/x86/*.so'
+        doNotStrip '*/x86_64/*.so'
+    }
+
+    }
+        bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = false
+        }
+        abi {
+            enableSplit = true
+        }
+    }
+
+    buildTypes {
+        profile {
+            signingConfig signingConfigs.debug
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+        }
+       /**  release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }*/
+   }
+    lint {
+        checkReleaseBuilds false
+        disable 'InvalidPackage'
+        checkReleaseBuilds false
+    }
+    packagingOptions {
+        pickFirst '**/*.so'
+        pickFirst 'lib/armeabi-v7a/libunity.so'
+        pickFirst 'lib/arm64-v8a/libunity.so'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst '**/libc++_shared.so'
+        
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/*.kotlin_module'
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+
+    // Add the lintOptions block here
+}
+
+flutter {
+    source '../..'
+}
+
+// Exclude duplicate classes from the unity-classes module
+configurations.configureEach {
+    resolutionStrategy.force 'com.android.support:support-v4:27.1.0'
+
+}
+
+dependencies {
+    implementation(project(':unityLibrary'))
+    implementation files("${project(':unityLibrary').projectDir}/libs/unity-classes.jar")
+
+  // implementation fileTree(dir: 'libs', include: ['*.jar'])
+  // implementation(name: 'unity-classes', ext:'jar')
+
+    implementation project(':flutter_unity_widget')
+
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'  // Update this
+    implementation 'androidx.multidex:multidex:2.0.1'
+}
