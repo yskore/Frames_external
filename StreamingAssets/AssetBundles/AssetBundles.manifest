@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 38307562
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: framebundle
+      Dependencies: {}
